@@ -4,10 +4,12 @@ import time
 import threading
 import socket
 import json
+import sqlite3
+import datetime
 
 # Receiver class for receiving dummy data from sensor_simulator.py
 class dummyReceiver(threading.Thread):
-    def __init__(self, threadnum, address, port):
+    def __init__(self, threadnum, address, port, db_path):
         self.threadnum = threadnum
         self.address = address
         self.port = port
@@ -15,11 +17,14 @@ class dummyReceiver(threading.Thread):
         self.database_access = False
         self.db_access_event = threading.Event()
         self.rcv_socket = None
+        self.db_path = db_path
+        self.sqlconn = None #If created here, 
         logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 
         super(dummyReceiver,self).__init__()
 
-    # when thrad.start() is called this is executed
+
+    # when thread.start() is called this is executed
     def run(self):
         self.main()
 
@@ -50,24 +55,28 @@ class dummyReceiver(threading.Thread):
             time.sleep(1)
             self.main()
     
+
     def test(self):
         while True:
             logging.info("testprint")
             time.sleep(0.5)
 
 
-    def allow_database_access(self):
-        logging.info(f"Database access granted for receiver {self.threadnum}")
-
-    def deny_database_access(self):
-        logging.info(f"Database access removed from receiver {self.threadnum}")
-        self.database_access = False
-
     def dump_cache(self):
         logging.info(f"Dumping cache")
+        if not self.sqlconn:
+            logging.info("Creating db connection")
+            self.sqlconn = sqlite3.connect(self.db_path)
         while not self.cache.empty():
             item = self.cache.get()
-            print("Item in queue:", item)
+            print("Dumping item from queue:", item)
+            cur = self.sqlconn.cursor()
+            query = """INSERT INTO 'meas'
+                       (sensor, humidity, temperature, pressure, battery, timestamp)
+                       VALUES (?, ?, ?, ?, ?, ?)"""
+            datatuple = (item.get("sensor"), item.get("humidity"), item.get("temperature"), item.get("pressure"), item.get("battery"), datetime.datetime.fromisoformat(item.get("timestamp")))
+            cur.execute(query, datatuple)
+            self.sqlconn.commit()
 
         self.db_access_event.clear()
 

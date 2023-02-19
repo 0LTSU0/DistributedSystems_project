@@ -32,10 +32,12 @@ class dummySensor(threading.Thread):
             meas_to_send = self.create_dummy_meas(conn_num)
             sock = self.connections[conn_num]
             packet = json.dumps(meas_to_send)
-            logging.info(f"sending {packet} to connection {conn_num}")
+            logging.debug(f"sending {packet} to connection {conn_num}")
+            logging.info(f"Sending dummy data to conn {conn_num}")
             sock.sendall(packet.encode())
-            time.sleep(random.uniform(0.01, 0.1))
+            time.sleep(random.uniform(0.01, 0.1)) #sleep a little to prevent random socket errors
 
+    #Create dummy dataentry that has same value that would come out of ruuvitag
     def create_dummy_meas(self, sensor_idx):
         meas = {}
         meas["sensor"] = f"Sensor-{sensor_idx}"
@@ -44,5 +46,5 @@ class dummySensor(threading.Thread):
         meas["pressure"] = random.uniform(0, 2000)
         meas["battery"] = random.uniform(0, 100)
         meas["timestamp"] = datetime.datetime.isoformat(datetime.datetime.now())
-        logging.info(f"Created dummy measurement: {meas}")
+        #logging.info(f"Created dummy measurement: {meas}")
         return meas
