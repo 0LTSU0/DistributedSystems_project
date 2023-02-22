@@ -6,13 +6,16 @@ import time
 import logging
 import sqlite3
 import os
-from urllib.request import urlopen
+import rsa
+import requests
+import tempfile
 
 
 START_PORT = 12345
 logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 SERVER_CACHE_UPDATE_URL = "http://127.0.0.1:5000/update_cache"
+PRIVATE_KEY, PUBLIC_KEY = None, None
 
 def main(rcvs, dummy_mode):
     rcv_threads = []
@@ -60,13 +63,39 @@ def main(rcvs, dummy_mode):
     exit(0)
 
 
-#TODO: implement secure key management
+def read_keypair():
+    path = os.path.dirname(__file__)
+    print(path)
+    global PUBLIC_KEY, PRIVATE_KEY
+    try:
+        with open(os.path.join(path, "public.pem"), "rb") as f:
+            PUBLIC_KEY = rsa.PublicKey.load_pkcs1(f.read())
+        with open(os.path.join(path, "private.pem"), "rb") as f:
+            PRIVATE_KEY = rsa.PrivateKey.load_pkcs1(f.read())
+    except Exception as e:
+        logging.fatal(f"Error reading keypair: {e}")
+        exit(-1)
+
+
 def token_to_server():
-    page = urlopen(SERVER_CACHE_UPDATE_URL)
-    if page.code == 200:
-        logging.info("Server cache updated")
+    if not PRIVATE_KEY and not PUBLIC_KEY:
+        read_keypair()
+    
+    #Sending rsa signature over http requst seems to be inconveninat ->
+    #make it into file and send it to keep formatting correct and rsa library happy
+    msg = "db access granted"
+    signature = rsa.sign(msg.encode(), PRIVATE_KEY, "SHA-256")
+    sfile = tempfile.TemporaryFile()
+    sfile.write(signature)
+    sfile.seek(0)
+    files={"file": sfile}
+    response = requests.post(SERVER_CACHE_UPDATE_URL, files=files, headers={"msg": msg})
+    sfile.close()
+
+    if response.status_code == 200:
+        logging.info("Server updated cache succesfully")
     else:
-        logging.error(f"Server returned wrong code {page.code}")
+        logging.error(f"Server returned wrong code {response.status_code}: {response.text}")
 
 
 def create_db(path):
@@ -95,7 +124,10 @@ if __name__ == "__main__":
     if not os.path.exists(DB_PATH):
         create_db(DB_PATH)
 
-    main(2, True)
+    #token_to_server()
+    main(5, True)
+
+
     #argparser = argparse.ArgumentParser()
     #argparser.add_argument("--rcv_threads")
     #argparser.add_argument("--use_dummy", action="store_true")
