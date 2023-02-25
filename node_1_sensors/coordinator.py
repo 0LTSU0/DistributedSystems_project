@@ -1,7 +1,7 @@
 import threading
 import argparse
-from sensor_receiver import dummyReceiver
-from dummy_sensor import dummySensor
+from sensor_receiver import dummyReceiver_socket, dummyReceiver_kafka
+from dummy_sensor import dummySensor_socket, dummySensor_kafka
 import time
 import logging
 import sqlite3
@@ -16,41 +16,66 @@ logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(
 DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 SERVER_CACHE_UPDATE_URL = "http://127.0.0.1:5000/update_cache"
 PRIVATE_KEY, PUBLIC_KEY = None, None
+KAFKA_SERVER = "localhost:9092"
 
-def main(rcvs, dummy_mode):
+def main(rcvs, mode="socket"):
     rcv_threads = []
     
-    if dummy_mode:
+    #Start dummy receivers that are listening to socket connection from dummy sensors
+    #and dummy sensors that send data over sockets to the receivers
+    if mode == "socket":
         # Create dummy receiver instances
         for i in range(rcvs):
-            t = dummyReceiver(i, "127.0.0.1", START_PORT + i, DB_PATH)
+            t = dummyReceiver_socket(i, "127.0.0.1", START_PORT + i, DB_PATH)
             t.daemon = True
             rcv_threads.append(t)
 
-        # Start dumym receivers
+        # Start dummy receivers
         for t in rcv_threads:
             t.start()
 
         # Start "dummy sensor"
-        t = dummySensor(START_PORT, rcvs, "127.0.0.1")
+        t = dummySensor_socket(START_PORT, rcvs, "127.0.0.1")
+        t.daemon = True
+        t.start()
+    
+    #Start dummy receivers listening to data from kafka server
+    #and start dummy sensors that send messages to the kafka server.
+    #The kafka topics will correspod to separate sensors in the format of topic=Sensor-X
+    elif mode == "kafka":
+        #Create dummy receiver instances (create one for each sensor to make sure token has many places to be at)
+        for i in range(rcvs):
+            topics = [f"Sensor-{i}"]
+            t = dummyReceiver_kafka(topics, DB_PATH)
+            t.daemon = True
+            rcv_threads.append(t)
+        
+        # Start dummy receivers
+        for t in rcv_threads:
+            t.start()
+
+        # Start dummy sensor(s)
+        t = dummySensor_kafka(rcvs, KAFKA_SERVER)
         t.daemon = True
         t.start()
 
     st = time.time()
-    runtime = 60
+    runtime = 20
 
     server_update_time = time.time()
     tokenholder = 0
-    while time.time() - st < 60:
+    while time.time() - st < runtime:
         if tokenholder == rcvs:
             tokenholder = 0
-        rcv_thread = rcv_threads[tokenholder]
-        logging.info(f"Setting db_access_event for {tokenholder}")
-        rcv_thread.db_access_event.set()
-        while rcv_thread.db_access_event.is_set():
-            time.sleep(0.1)
-        logging.info(f"db_access_event returned from {tokenholder}")
-        tokenholder += 1
+        
+        if len(rcv_threads) > 0:
+            rcv_thread = rcv_threads[tokenholder]
+            logging.info(f"Setting db_access_event for {tokenholder}")
+            rcv_thread.db_access_event.set()
+            while rcv_thread.db_access_event.is_set(): #Wait for thread to say its ready
+                time.sleep(0.1)
+            logging.info(f"db_access_event returned from {tokenholder}")
+            tokenholder += 1
 
         #give token to server every 5 seconds
         if time.time() - server_update_time > 5:
@@ -63,6 +88,7 @@ def main(rcvs, dummy_mode):
     exit(0)
 
 
+# Read public/private keys to global variables
 def read_keypair():
     path = os.path.dirname(__file__)
     print(path)
@@ -77,6 +103,7 @@ def read_keypair():
         exit(-1)
 
 
+# Send signed message about db access to flask server
 def token_to_server():
     if not PRIVATE_KEY and not PUBLIC_KEY:
         read_keypair()
@@ -89,15 +116,18 @@ def token_to_server():
     sfile.write(signature)
     sfile.seek(0)
     files={"file": sfile}
-    response = requests.post(SERVER_CACHE_UPDATE_URL, files=files, headers={"msg": msg})
+    try:
+        response = requests.post(SERVER_CACHE_UPDATE_URL, files=files, headers={"msg": msg})
+        if response.status_code == 200:
+            logging.info("Server updated cache succesfully")
+        else:
+            logging.error(f"Server returned wrong code {response.status_code}: {response.text}")
+    except requests.exceptions.ConnectionError:
+        logging.error("Could not connect to flask server")
     sfile.close()
 
-    if response.status_code == 200:
-        logging.info("Server updated cache succesfully")
-    else:
-        logging.error(f"Server returned wrong code {response.status_code}: {response.text}")
 
-
+# Init database with correct table format
 def create_db(path):
     print(path)
     conn = sqlite3.connect(path)
@@ -112,6 +142,7 @@ def create_db(path):
                                     timestamp DATETIME NOT NULL)""")
     conn.commit()
 
+
 # usage: "python coordinator.py --rcv_threads X --use_dummy"
 if __name__ == "__main__":
     #for debuging purposes delete database on launch
@@ -124,17 +155,16 @@ if __name__ == "__main__":
     if not os.path.exists(DB_PATH):
         create_db(DB_PATH)
 
-    #token_to_server()
-    main(5, True)
+    main(5, mode="kafka")
 
 
     #argparser = argparse.ArgumentParser()
     #argparser.add_argument("--rcv_threads")
-    #argparser.add_argument("--use_dummy", action="store_true")
+    #argparser.add_argument("--mode", action="store_true")
     #args = argparser.parse_args()
     #
     #if not args.rcv_threads:
-    #    print("usage: 'python coordinator.py --rcv_threads X --use_dummy'")
+    #    print("usage: 'python coordinator.py --rcv_threads X --use_sockets'")
     #    exit(-1)
     #
-    #main(args.rcv_threads, args.use_dummy)
+    #main(args.rcv_threads, args.use_sockets)
