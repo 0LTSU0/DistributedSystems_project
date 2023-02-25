@@ -14,15 +14,17 @@ def draw_plot():
     measurements = get_meas(60)
     data = prepare_data(measurements)
     
-    i = 1
+    i = 0
+    fig, ax1 = plt.subplots(len(data), 1)
     for sensor in data:
-        plt.subplot(len(data), 1, i)
-        plt.xticks(np.arange(0, len(data["Sensor-0"].get("timestamps")) + 1, 10))
-        plt.plot(data[sensor].get("timestamps"), data[sensor].get("humidities"), label="humidity")
-        plt.plot(data[sensor].get("timestamps"), data[sensor].get("temps"), label="temperature")
-        plt.plot(data[sensor].get("timestamps"), data[sensor].get("batteries"), label="battery")
-        plt.plot(data[sensor].get("timestamps"), data[sensor].get("pressures"), label="pressure")
-        plt.legend()
+        plt.xticks(np.arange(0, len(data["Sensor-0"].get("timestamps")) + 1, 5))
+        ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("humidities"), label="humidity")
+        ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("temps"), label="temperature")
+        ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("batteries"), label="battery")
+        ax1[i].legend(loc=2)
+        ax2 = ax1[i].twinx()
+        ax2.plot(data[sensor].get("timestamps"), data[sensor].get("pressures"), label="pressure")
+        ax2.legend(loc=1)
         i += 1
 
     plt.show()
