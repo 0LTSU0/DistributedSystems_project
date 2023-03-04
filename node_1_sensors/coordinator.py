@@ -18,7 +18,7 @@ SERVER_CACHE_UPDATE_URL = "http://127.0.0.1:5000/update_cache"
 PRIVATE_KEY, PUBLIC_KEY = None, None
 KAFKA_SERVER = "localhost:9092"
 
-def main(rcvs, mode="socket"):
+def main(rcvs, mode, timeout=None):
     rcv_threads = []
     
     #Start dummy receivers that are listening to socket connection from dummy sensors
@@ -27,7 +27,8 @@ def main(rcvs, mode="socket"):
         # Create dummy receiver instances
         for i in range(rcvs):
             t = dummyReceiver_socket(i, "127.0.0.1", START_PORT + i, DB_PATH)
-            t.daemon = True
+            if timeout: #If timeout, make threads die when finished
+                t.daemon = True
             rcv_threads.append(t)
 
         # Start dummy receivers
@@ -36,18 +37,20 @@ def main(rcvs, mode="socket"):
 
         # Start "dummy sensor"
         t = dummySensor_socket(START_PORT, rcvs, "127.0.0.1")
-        t.daemon = True
+        if timeout: #If timeout, make threads die when finished
+            t.daemon = True
         t.start()
     
     #Start dummy receivers listening to data from kafka server
     #and start dummy sensors that send messages to the kafka server.
-    #The kafka topics will correspod to separate sensors in the format of topic=Sensor-X
+    #The kafka topics will correspond to separate sensors in the format of topic=Sensor-X
     elif mode == "kafka":
         #Create dummy receiver instances (create one for each sensor to make sure token has many places to be at)
         for i in range(rcvs):
             topics = [f"Sensor-{i}"]
             t = dummyReceiver_kafka(topics, DB_PATH)
-            t.daemon = True
+            if timeout:
+                t.daemon = True
             rcv_threads.append(t)
         
         # Start dummy receivers
@@ -56,15 +59,20 @@ def main(rcvs, mode="socket"):
 
         # Start dummy sensor(s)
         t = dummySensor_kafka(rcvs, KAFKA_SERVER)
-        t.daemon = True
+        if timeout:
+            t.daemon = True
         t.start()
 
     st = time.time()
-    runtime = 20
 
     server_update_time = time.time()
     tokenholder = 0
-    while time.time() - st < runtime:
+    while True:
+        if timeout:
+            if time.time() - st > timeout:
+                logging.info("Timeout reached")
+                break
+
         if tokenholder == rcvs:
             tokenholder = 0
         
@@ -83,7 +91,6 @@ def main(rcvs, mode="socket"):
             token_to_server()
             server_update_time = time.time()
 
-    #time.sleep(10)
     print("kill everything")
     exit(0)
 
@@ -143,7 +150,7 @@ def create_db(path):
     conn.commit()
 
 
-# usage: "python coordinator.py --rcv_threads X --use_dummy"
+# usage: "python coordinator.py --rcv_threads X --mode socket/kafka"
 if __name__ == "__main__":
     #for debuging purposes delete database on launch
     try:
@@ -155,16 +162,17 @@ if __name__ == "__main__":
     if not os.path.exists(DB_PATH):
         create_db(DB_PATH)
 
-    main(5, mode="kafka")
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--rcv_threads")
+    argparser.add_argument("--mode")
+    argparser.add_argument("--timeout")
+    args = argparser.parse_args()
+    
+    if not args.rcv_threads and args.mode:
+        print("usage: 'python coordinator.py --rcv_threads X --mode socket/kafka (--timeout X)'")
+        exit(-1)
 
-
-    #argparser = argparse.ArgumentParser()
-    #argparser.add_argument("--rcv_threads")
-    #argparser.add_argument("--mode", action="store_true")
-    #args = argparser.parse_args()
-    #
-    #if not args.rcv_threads:
-    #    print("usage: 'python coordinator.py --rcv_threads X --use_sockets'")
-    #    exit(-1)
-    #
-    #main(args.rcv_threads, args.use_sockets)
+    if args.timeout:
+        main(int(args.rcv_threads), args.mode, timeout=int(args.timeout))
+    
+    main(int(args.rcv_threads), args.mode)

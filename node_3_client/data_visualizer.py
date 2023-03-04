@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(
 
 # Draw plot
 def draw_plot():
-    measurements = get_meas(60)
+    measurements = get_meas(600)
     data = prepare_data(measurements)
     
     i = 0

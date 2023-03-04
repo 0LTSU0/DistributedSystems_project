@@ -123,9 +123,3 @@ class dummyReceiver_socket(threading.Thread):
 
         self.db_access_event.clear()
 
-
-
-# Receiver class for receiving data from real ruuviTags
-class ruuvitagReceiver():
-    def __init__(self, mac_addresses):
-        self.ruuvtags = mac_addresses
