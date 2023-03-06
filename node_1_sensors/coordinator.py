@@ -9,11 +9,16 @@ import os
 import rsa
 import requests
 import tempfile
+import kafka
+import platform
 
 
 START_PORT = 12345
 logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
-DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
+if platform.system() == "Linux":
+    DB_PATH = os.path.join("/data", "database.db")
+else:
+    DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 SERVER_CACHE_UPDATE_URL = "http://127.0.0.1:5000/update_cache"
 PRIVATE_KEY, PUBLIC_KEY = None, None
 KAFKA_SERVER = "localhost:9092"
@@ -148,6 +153,8 @@ def create_db(path):
                                     battery REAL, 
                                     timestamp DATETIME NOT NULL)""")
     conn.commit()
+    if platform.system() == "Linux":
+        os.chmod(path, 0o0777) #Must give premissions or other processes can't access
 
 
 # usage: "python coordinator.py --rcv_threads X --mode socket/kafka"
@@ -171,6 +178,16 @@ if __name__ == "__main__":
     if not args.rcv_threads and args.mode:
         print("usage: 'python coordinator.py --rcv_threads X --mode socket/kafka (--timeout X)'")
         exit(-1)
+
+    if args.mode == "kafka":
+        # Wait until kafka is running
+        while True:
+            try:
+                consumer = kafka.KafkaConsumer(group_id='test', bootstrap_servers=['localhost:9092'])
+                break # connection was succesfull
+            except Exception as e:
+                print("Kafka not running")
+                time.sleep(1)
 
     if args.timeout:
         main(int(args.rcv_threads), args.mode, timeout=int(args.timeout))
