@@ -3,6 +3,7 @@ import logging
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.dates as mdates
 
 
 SEVER_URL = "http://127.0.0.1:5000/get_measurements/"
@@ -11,22 +12,24 @@ logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(
 
 # Draw plot
 def draw_plot():
-    measurements = get_meas(600)
+    measurements = get_meas(60)
     data = prepare_data(measurements)
     
     i = 0
     fig, ax1 = plt.subplots(len(data), 1)
+    
     for sensor in data:
-        plt.xticks(np.arange(0, len(data["Sensor-0"].get("timestamps")) + 1, 5))
+        #plt.xticks(np.arange(0, len(data["Sensor-0"].get("timestamps")) + 1, 5))
         ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("humidities"), label="humidity")
         ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("temps"), label="temperature")
         ax1[i].plot(data[sensor].get("timestamps"), data[sensor].get("batteries"), label="battery")
         ax1[i].legend(loc=2)
+        #plt.setp( ax1[i].xaxis.get_majorticklabels(), rotation=20)
         ax2 = ax1[i].twinx()
         ax2.plot(data[sensor].get("timestamps"), data[sensor].get("pressures"), label="pressure")
         ax2.legend(loc=1)
         i += 1
-
+        plt.gcf().autofmt_xdate()
     plt.show()
     pass
 

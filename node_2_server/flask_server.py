@@ -5,9 +5,13 @@ import logging
 import time
 import json
 import rsa
+import platform
 
 
-DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
+if platform.system() == "Linux":
+    DB_PATH = os.path.join("/data", "database.db")
+else:
+    DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 app = Flask(__name__)
 meas_cache = []
 logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
@@ -75,4 +79,7 @@ if __name__ == "__main__":
         logging.info("Waiting for databse to be created")
         time.sleep(1)
     #meas_cache = load_recent_records(500)
-    app.run(debug=True)
+    if platform.system() == "Linux":
+        app.run(debug=True, host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+    else:
+        app.run(debug=True)
