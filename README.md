@@ -5,7 +5,7 @@ Project for course 521290S Distributed systems
 # Usage (docker)
 ## Node 1 (sensors and kafka)
 1. Set desired args in node_1_sensors/Dockerfile (NOTE: max number of threads is 20 as only that many ports are allocated later)
-2. Build docker image for node1: /DistributedSystems_project/node_1_sensors: <sup>docker build -t node_1 .</sup>
+2. Build docker image for node1: /DistributedSystems_project/node_1_sensors: `docker build -t node_1 .`
 3. Set database path to docker-compose.yml
 4. Run <sup>docker-compose up</sup>
 
