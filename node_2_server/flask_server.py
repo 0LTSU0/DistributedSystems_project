@@ -6,6 +6,7 @@ import time
 import json
 import rsa
 import platform
+from datetime import datetime
 
 
 if platform.system() == "Linux":
@@ -14,7 +15,12 @@ else:
     DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 app = Flask(__name__)
 meas_cache = []
-logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
+if platform.platform() == "Linux":
+    start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
+        handlers=[logging.FileHandler(f"/data/data_visualizer{start_time}.log"), logging.StreamHandler()])
+else:
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 COORDINATOR_PUBLIC_KEY = None
 
 

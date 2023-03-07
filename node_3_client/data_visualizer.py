@@ -2,13 +2,17 @@ from urllib.request import urlopen
 import logging
 import json
 import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib.dates as mdates
+import platform
+from datetime import datetime
 
 
 SEVER_URL = "http://127.0.0.1:5000/get_measurements/"
-logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
-
+if platform.platform() == "Linux":
+    start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
+        handlers=[logging.FileHandler(f"/data/data_visualizer{start_time}.log"), logging.StreamHandler()])
+else:
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 
 # Draw plot
 def draw_plot():
