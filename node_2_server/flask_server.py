@@ -18,7 +18,7 @@ meas_cache = []
 if platform.platform() == "Linux":
     start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
     logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"/data/data_visualizer{start_time}.log"), logging.StreamHandler()])
+        handlers=[logging.FileHandler(f"/data/flask_server{start_time}.log"), logging.StreamHandler()])
 else:
     logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 COORDINATOR_PUBLIC_KEY = None
