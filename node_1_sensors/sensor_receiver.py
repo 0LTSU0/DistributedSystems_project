@@ -20,7 +20,7 @@ class dummyReceiver_kafka(threading.Thread):
         self.sqlconn = None
         self.kafkarcv = KafkaConsumer()
         self.kafkarcv.subscribe(self.topics)
-        logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
+        #logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
         super(dummyReceiver_kafka,self).__init__()
 
 
@@ -45,7 +45,8 @@ class dummyReceiver_kafka(threading.Thread):
             self.sqlconn = sqlite3.connect(self.db_path)
         while not self.cache.empty():
             item = self.cache.get()
-            print("Dumping item from queue:", item)
+            #print("Dumping item from queue:", item)
+            logging.info(f"Dumping item from cache {str(item)}")
             cur = self.sqlconn.cursor()
             query = """INSERT INTO 'meas'
                        (sensor, humidity, temperature, pressure, battery, timestamp)

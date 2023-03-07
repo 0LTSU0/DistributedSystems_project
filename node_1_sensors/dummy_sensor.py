@@ -39,7 +39,7 @@ class dummySensor_socket(threading.Thread):
         self.sport = start_port
         self.rcv_address = address
         self.connections = []
-        logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
+        #logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 
     def run(self):
         self.main()

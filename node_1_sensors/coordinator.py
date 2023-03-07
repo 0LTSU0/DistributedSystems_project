@@ -164,6 +164,7 @@ def create_db(path):
     conn.commit()
     if platform.system() == "Linux":
         os.chmod(path, 0o0777) #Must give premissions or other processes can't access
+        os.chmod(path.parent, 0o0777)
 
 
 # usage: "python coordinator.py --rcv_threads X --mode socket/kafka"
