@@ -15,11 +15,7 @@ from datetime import datetime
 
 
 START_PORT = 12345
-if platform.platform() == "Linux":
-    start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"/data/coordinator{start_time}.log"), logging.StreamHandler()])
-else:
+if platform.platform() == "Windows":
     logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 if platform.system() == "Linux":
     DB_PATH = os.path.join("/data", "database.db")
@@ -28,6 +24,13 @@ else:
 SERVER_CACHE_UPDATE_URL = "http://127.0.0.1:5000/update_cache"
 PRIVATE_KEY, PUBLIC_KEY = None, None
 KAFKA_SERVER = "localhost:9092"
+
+
+def init_logging(num_rcv):
+    start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
+        handlers=[logging.FileHandler(f"/data/{num_rcv}_coordinator{start_time}.log"), logging.StreamHandler()])
+    
 
 def main(rcvs, mode, timeout=None):
     rcv_threads = []
@@ -194,6 +197,9 @@ if __name__ == "__main__":
             except Exception as e:
                 print("Kafka not running")
                 time.sleep(1)
+
+    if platform.platform() == "Linux":
+        init_logging(args.rcv_threads)
 
     if args.timeout:
         main(int(args.rcv_threads), args.mode, timeout=int(args.timeout))
