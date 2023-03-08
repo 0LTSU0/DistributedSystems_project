@@ -68,7 +68,7 @@ class dummyReceiver_socket(threading.Thread):
         self.rcv_socket = None
         self.db_path = db_path
         self.sqlconn = None #If created here, it will correspond to coordinator thread -> wont work at all
-        logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
+        #logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 
         super(dummyReceiver_socket,self).__init__()
 

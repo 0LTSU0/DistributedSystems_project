@@ -11,6 +11,7 @@ import requests
 import tempfile
 import kafka
 import platform
+import pathlib
 from datetime import datetime
 
 
@@ -29,6 +30,7 @@ def init_logging(num_rcv):
     #Remove handlers to clear logging that some other libraries might have initiated
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
+    #Adjust paths depending on system
     if platform.system() == "Linux":
         logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s",
             handlers=[logging.FileHandler(f"/data/{num_rcv}_coordinator_{start_time}.log"), logging.StreamHandler()])
@@ -168,8 +170,9 @@ def create_db(path):
                                     timestamp DATETIME NOT NULL)""")
     conn.commit()
     if platform.system() == "Linux":
+        path_o = pathlib.Path(path)
         os.chmod(path, 0o0777) #Must give premissions or other processes can't access
-        os.chmod(path.parent, 0o0777)
+        os.chmod(path_o.parent, 0o0777)
 
 
 # usage: "python coordinator.py --rcv_threads X --mode socket/kafka"
