@@ -16,7 +16,6 @@ class dummyReceiver_kafka(threading.Thread):
         self.db_path = db_path
         self.cache = queue.Queue(100) #Receive max 100 measurements in between tokens
         self.db_access_event = threading.Event()
-        self.topics = topics
         self.sqlconn = None
         self.kafkarcv = KafkaConsumer()
         self.kafkarcv.subscribe(self.topics)

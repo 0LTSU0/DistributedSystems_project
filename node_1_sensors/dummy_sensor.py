@@ -59,7 +59,7 @@ class dummySensor_socket(threading.Thread):
             sock = self.connections[conn_num]
             packet = json.dumps(meas_to_send)
             logging.debug(f"sending {packet} to connection {conn_num}")
-            logging.info(f"Sending dummy data to conn {conn_num}")
+            logging.info(f"Sending dummy data to conn num {conn_num}")
             sock.sendall(packet.encode())
             time.sleep(random.uniform(0.01, 0.1)) #sleep a little to prevent random socket errors
 
@@ -73,5 +73,5 @@ def create_dummy_meas(sensor_idx):
     meas["pressure"] = random.uniform(0, 2000)
     meas["battery"] = random.uniform(0, 100)
     meas["timestamp"] = datetime.datetime.isoformat(datetime.datetime.now())
-    #logging.info(f"Created dummy measurement: {meas}")
+    logging.debug(f"Created dummy measurement: {meas}")
     return meas

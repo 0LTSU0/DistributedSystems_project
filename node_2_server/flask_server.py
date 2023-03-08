@@ -15,12 +15,13 @@ else:
     DB_PATH = os.path.join(__file__, "../..", "db", "database.db")
 app = Flask(__name__)
 meas_cache = []
-if platform.platform() == "Linux":
-    start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+if platform.system() == "Linux":
     logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"/data/flask_server{start_time}.log"), logging.StreamHandler()])
+        handlers=[logging.FileHandler(f"/data/flask_server_{start_time}.log"), logging.StreamHandler()])
 else:
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
+        handlers=[logging.FileHandler(f"flask_server_{start_time}.log"), logging.StreamHandler()])
 COORDINATOR_PUBLIC_KEY = None
 
 

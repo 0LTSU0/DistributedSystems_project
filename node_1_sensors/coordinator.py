@@ -15,8 +15,6 @@ from datetime import datetime
 
 
 START_PORT = 12345
-if platform.platform() == "Windows":
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s")
 if platform.system() == "Linux":
     DB_PATH = os.path.join("/data", "database.db")
 else:
@@ -28,8 +26,15 @@ KAFKA_SERVER = "localhost:9092"
 
 def init_logging(num_rcv):
     start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"/data/{num_rcv}_coordinator{start_time}.log"), logging.StreamHandler()])
+    #Remove handlers to clear logging that some other libraries might have initiated
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    if platform.system() == "Linux":
+        logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s",
+            handlers=[logging.FileHandler(f"/data/{num_rcv}_coordinator_{start_time}.log"), logging.StreamHandler()])
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s",
+            handlers=[logging.FileHandler(f"{num_rcv}_coordinator_{start_time}.log"), logging.StreamHandler()])
     
 
 def main(rcvs, mode, timeout=None):
@@ -193,14 +198,13 @@ if __name__ == "__main__":
         # Wait until kafka is running
         while True:
             try:
-                consumer = kafka.KafkaConsumer(group_id='test', bootstrap_servers=['localhost:9092'])
+                consumer = kafka.KafkaConsumer(bootstrap_servers=['localhost:9092'])
                 break # connection was succesfull
             except Exception as e:
                 print("Kafka not running")
                 time.sleep(1)
 
-    if platform.platform() == "Linux":
-        init_logging(args.rcv_threads)
+    init_logging(args.rcv_threads)
 
     if args.timeout:
         main(int(args.rcv_threads), args.mode, timeout=int(args.timeout))
