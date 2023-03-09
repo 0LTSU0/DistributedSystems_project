@@ -25,6 +25,7 @@ else:
 COORDINATOR_PUBLIC_KEY = None
 
 
+# Get records of desired amount (500 is max cache length)
 @app.route("/get_measurements/<int:len_history>")
 def get_measurements(len_history):
     ret_meas = {}
@@ -32,7 +33,7 @@ def get_measurements(len_history):
     return json.dumps(ret_meas)
 
 
-#TODO: implement checking sender through key management
+# Update cache if command came from correct sender
 @app.route("/update_cache", methods=["POST"])
 def update_cache():
     global meas_cache
@@ -46,6 +47,7 @@ def update_cache():
     return "Sender could not be verified to be expected coordinator", 404
 
 
+#Verify that sender of /update_cache corresponds to known coordinator public key
 def verify_sender(headers):
     logging.info("Verifying /update_cache command sender")
     global COORDINATOR_PUBLIC_KEY
@@ -69,7 +71,7 @@ def verify_sender(headers):
         return False
 
 
-
+#Get len_history of records from database
 def load_recent_records(len_history):
     logging.info("Updating cache")
     db_conn = sqlite3.connect(DB_PATH)
