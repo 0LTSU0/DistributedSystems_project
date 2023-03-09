@@ -11,11 +11,11 @@ Project for course 521290S Distributed systems
 
 ## Node 2 (web server)
 1. Build docker image for node2: /DistributedSystems_project/node_2_server: `docker build -t node_2 .`
-2. `docker run -p 5000:5000 --volume /home/ltsu/Desktop/_proj/DistributedSystems_project/node_1_sensors/db:/data node_2`
+2. `docker run -p 5000:5000 --volume /home/ltsu/Desktop/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_2`
 
 ## Node 3 (client)
 1. Build docker image for node3: `docker build -t node_3 .`
-2. `docker run --network host --env="DISPLAY" --user=$(id -u) node_3`
+2. `docker run --network host --env="DISPLAY" --user=$(id -u) --volume /home/ltsu/Deskt/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_3`
 
 
 # Usage (locally)
