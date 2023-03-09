@@ -6,4 +6,4 @@ COPY . /node_1
 RUN pip install -r requirements.txt
 
 
-CMD ["python", "coordinator.py", "--rcv_threads", "2", "--mode", "kafka", "--timeout", "30"]
+CMD ["python", "-u", "coordinator.py", "--rcv_threads", "2", "--mode", "kafka", "--timeout", "30"]

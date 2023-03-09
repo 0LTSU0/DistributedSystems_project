@@ -170,23 +170,15 @@ def create_db(path):
                                     timestamp DATETIME NOT NULL)""")
     conn.commit()
     if platform.system() == "Linux":
+        print("chmodding")
         path_o = pathlib.Path(path)
         os.chmod(path, 0o0777) #Must give premissions or other processes can't access
         os.chmod(path_o.parent, 0o0777)
+        print("chmod complete")
 
 
 # usage: "python coordinator.py --rcv_threads X --mode socket/kafka"
 if __name__ == "__main__":
-    #for debuging purposes delete database on launch
-    try:
-        os.remove(DB_PATH)
-        logging.info(f"db deleted")
-    except Exception as e:
-        logging.error(f"error occurred: {str(e)}")
-    
-    if not os.path.exists(DB_PATH):
-        create_db(DB_PATH)
-
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--rcv_threads")
     argparser.add_argument("--mode")
@@ -197,6 +189,20 @@ if __name__ == "__main__":
         print("usage: 'python coordinator.py --rcv_threads X --mode socket/kafka (--timeout X)'")
         exit(-1)
 
+    init_logging(args.rcv_threads)
+
+    #for demonstration reasons purposes delete database on launch
+    try:
+        os.remove(DB_PATH)
+        print("db deleted")
+        logging.info(f"db deleted")
+    except Exception as e:
+        logging.error(f"error occurred: {str(e)}")
+        print("error: ", e)
+    
+    if not os.path.exists(DB_PATH):
+        create_db(DB_PATH)
+
     if args.mode == "kafka":
         # Wait until kafka is running
         while True:
@@ -206,8 +212,6 @@ if __name__ == "__main__":
             except Exception as e:
                 print("Kafka not running")
                 time.sleep(1)
-
-    init_logging(args.rcv_threads)
 
     if args.timeout:
         main(int(args.rcv_threads), args.mode, timeout=int(args.timeout))

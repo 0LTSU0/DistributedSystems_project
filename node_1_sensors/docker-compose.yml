@@ -20,4 +20,4 @@ services:
     ports:
       - "12345:12365"
     volumes:
-      - /home/ltsu/Desktop/DS_proj/DistributedSystems_project/node_1_sensors/db:/data
+      - /home/ltsu/Desktop/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data
