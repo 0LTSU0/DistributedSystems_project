@@ -8,7 +8,7 @@ from datetime import datetime
 
 SEVER_URL = "http://127.0.0.1:5000/get_measurements/"
 start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-if platform.platform() == "Linux":
+if platform.system() == "Linux":
     logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
         handlers=[logging.FileHandler(f"/data/data_visualizer_{start_time}.log"), logging.StreamHandler()])
 else:
