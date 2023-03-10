@@ -14,7 +14,7 @@ Before starting setup, make sure you have an empty folder created somewhere whic
 
 # Usage (docker, Linux)
 ## Node 1 (sensors and kafka)
-1. Set desired args for coordinator.py in node_1_sensors/Dockerfile (NOTE: max number of receivers is 20)
+1. Set desired args for coordinator.py in node_1_sensors/Dockerfile (NOTE: max number of receivers is 20 and timeout is an optional argument which denotes for how long the system will run)
 2. Build docker image for node1: /DistributedSystems_project/node_1_sensors: `docker build -t node_1 .`
 3. Set path to fore-mentioned empty folder to docker-compose.yml
 4. Run `docker-compose up` (prefarebly after web server is running)
