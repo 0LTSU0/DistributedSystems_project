@@ -1,5 +1,4 @@
 from urllib.request import urlopen
-import logging
 import json
 import matplotlib.pyplot as plt
 import platform
@@ -8,12 +7,6 @@ from datetime import datetime
 
 SEVER_URL = "http://127.0.0.1:5000/get_measurements/"
 start_time = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-if platform.system() == "Linux":
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"/data/data_visualizer_{start_time}.log"), logging.StreamHandler()])
-else:
-    logging.basicConfig(level=logging.INFO, format="%(threadName)s - %(asctime)s: %(message)s", 
-        handlers=[logging.FileHandler(f"data_visualizer_{start_time}.log"), logging.StreamHandler()])
 
 # Draw plot
 def draw_plot():
@@ -21,10 +14,10 @@ def draw_plot():
     data = prepare_data(measurements)
 
     if data == {}:
-        logging.warn("Server gave empty response -> can't plot")
+        print("Server gave empty response -> can't plot")
         exit()
     else:
-        logging.info(f"Got data from server containing {len(data)} sensors")
+        print(f"Got data from server containing {len(data)} sensors")
     
     i = 0
     fig, ax1 = plt.subplots(len(data), 1)
