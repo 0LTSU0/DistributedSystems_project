@@ -1,6 +1,14 @@
 # DistributedSystems_project
 
-Project for course 521290S Distributed systems
+Project for course 521290S Distributed systems. This project demonstrates an IoT system in which the first node consists of receveires for sensor data (in this case the physical sensors are replaced by a script which sends randomly generated measuremnets through Apache Kafka), second node consists of a web server which can be used to attach these measurements in database and a third node whose purpose is to serve as a very rudimentary client for utilizing the web server. The DS topics demonstrated are *coordination* (through circulating database access token between receivers and web server) and *secure key management* (web server lives in a separate container -> token is sent to it through http request but the message is signed by the coordinator hence making sure that the permission to databae is indeed valid).
+
+Note: in the coordinator.py you can see that there are two operation modes available --mode=kafka/socket. The mode that should be used for evaluation is kafka as the socket mode was mainly implemented to make testing possible without having kafka running but that mode is not guaranteed to work correctly.
+
+# Environment
+This project has been tested to work correctly with the following setup:
+- Ubuntu 18.04 LTS
+- docker 20.10.12
+- docker-compose 1.17.1
 
 # Usage (docker)
 ## Node 1 (sensors and kafka)
@@ -18,10 +26,10 @@ Project for course 521290S Distributed systems
 2. `docker run --network host --env="DISPLAY" --user=$(id -u) --volume /home/ltsu/Deskt/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_3`
 
 
-# Usage (locally)
+# Usage (locally, do not use for evaluation)
 1. If kafka mode is desired run kafka server:
     - C:\kafka>.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
     - C:\kafka>.\bin\windows\kafka-server-start.bat .\config\server.properties
-2. Run coordinator.py (mode="socket"/"kafka")
+2. Run coordinator.py
 3. Run flask_server.py
 4. Run data_visualizer.py
