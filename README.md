@@ -24,8 +24,8 @@ Before starting setup, make sure you have an empty folder created somewhere whic
 2. `docker run -p 5000:5000 --volume /home/ltsu/Desktop/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_2` **NOTE: replace path with the same path you used in Node 1**
 
 ## Node 3 (client)
-1. Build docker image for node3: `docker build -t node_3 .`
-2. `docker run --network host --env="DISPLAY" --user=$(id -u) --volume /home/ltsu/Deskt/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_3` **NOTE: replace path with the same path you used in Node 1**
+1. Build docker image for /DistributedSystems_project/node_3_client: `docker build -t node_3 .`
+2. `docker run --network host --env="DISPLAY" --user=$(id -u) --volume /home/ltsu/Desktop/ds_proj2/DistributedSystems_project/node_1_sensors/db:/data node_3` **NOTE: replace path with the same path you used in Node 1**
 
 
 # Usage (locally, windows, do not use for evaluation)
