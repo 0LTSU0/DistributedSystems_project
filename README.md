@@ -12,6 +12,9 @@ This project has been tested to work correctly with the following setup:
 
 Before starting setup, make sure you have an empty folder created somewhere which you can mount to docker containers (database and logs will be created here). This folder will be mounted to the containers as /data/ and thus **THIS PROJECT WILL ONLY WORK ON LINUX!!!!**
 
+# Demo
+Short demo video of the system running can be found in https://youtu.be/YbAvMJpLJAY 
+
 # Usage (docker, Linux)
 ## Node 1 (sensors and kafka)
 1. Set desired args for coordinator.py in node_1_sensors/Dockerfile (NOTE: max number of receivers is 20 and timeout is an optional argument which denotes for how long the system will run)
